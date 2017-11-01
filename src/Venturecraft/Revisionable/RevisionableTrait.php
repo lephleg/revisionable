@@ -107,10 +107,10 @@ trait RevisionableTrait
     }
 
     /**
-    * Invoked before a model is saved. Return false to abort the operation.
-    *
-    * @return bool
-    */
+     * Invoked before a model is saved. Return false to abort the operation.
+     *
+     * @return bool
+     */
     public function preSave()
     {
         if (!isset($this->revisionEnabled) || $this->revisionEnabled) {
@@ -182,9 +182,9 @@ trait RevisionableTrait
                     'old_value' => array_get($this->originalData, $key),
                     'new_value' => $this->updatedData[$key],
                     'user_id' => $this->getSystemUserId(),
-                    'user_ip' => $_SERVER["HTTP_X_REAL_IP"],
+                    'user_ip' => self::getRealUserIp(),
                     'user_location' => class_exists('IpAnalystHelper') ?
-                        \IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]) : null,
+                        \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                     'created_at' => new \DateTime(),
                     'updated_at' => new \DateTime(),
                 );
@@ -205,8 +205,8 @@ trait RevisionableTrait
     }
 
     /**
-    * Called after record successfully created
-    */
+     * Called after record successfully created
+     */
     public function postCreate()
     {
 
@@ -227,9 +227,9 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{self::CREATED_AT},
                 'user_id' => $this->getSystemUserId(),
-                'user_ip' => $_SERVER["HTTP_X_REAL_IP"],
+                'user_ip' => self::getRealUserIp(),
                 'user_location' => class_exists('IpAnalystHelper') ?
-                    \IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]) : null,
+                    \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -257,9 +257,9 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
-                'user_ip' => $_SERVER["HTTP_X_REAL_IP"],
+                'user_ip' => self::getRealUserIp(),
                 'user_location' => class_exists('IpAnalystHelper') ?
-                    \IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]) : null,
+                    \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -444,4 +444,14 @@ trait RevisionableTrait
             unset($donts);
         }
     }
+
+    private function getRealUserIp(){
+        switch(true){
+            case (!empty($_SERVER['HTTP_X_REAL_IP'])) : return $_SERVER['HTTP_X_REAL_IP'];
+            case (!empty($_SERVER['HTTP_CLIENT_IP'])) : return $_SERVER['HTTP_CLIENT_IP'];
+            case (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) : return $_SERVER['HTTP_X_FORWARDED_FOR'];
+            default : return $_SERVER['REMOTE_ADDR'];
+        }
+    }
+
 }

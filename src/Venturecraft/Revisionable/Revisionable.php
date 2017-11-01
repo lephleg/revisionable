@@ -147,9 +147,9 @@ class Revisionable extends Eloquent
                     'old_value'             => array_get($this->originalData, $key),
                     'new_value'             => $this->updatedData[$key],
                     'user_id'               => $this->getSystemUserId(),
-                    'user_ip'               => $_SERVER["HTTP_X_REAL_IP"],
+                    'user_ip'               => self::getRealUserIp(),
                     'user_location'         => class_exists('IpAnalystHelper') ?
-                        \IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]) : null,
+                        \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                     'created_at'            => new \DateTime(),
                     'updated_at'            => new \DateTime(),
                 );
@@ -163,8 +163,8 @@ class Revisionable extends Eloquent
     }
 
     /**
-    * Called after record successfully created
-    */
+     * Called after record successfully created
+     */
     public function postCreate()
     {
 
@@ -184,9 +184,10 @@ class Revisionable extends Eloquent
                 'key' => self::CREATED_AT,
                 'old_value' => null,
                 'new_value' => $this->{self::CREATED_AT},
-                'user_ip' => $this->getSystemUserId(),
+                'user_id' => $this->getSystemUserId(),
+                'user_ip' => self::getRealUserIp(),
                 'user_location' => class_exists('IpAnalystHelper') ?
-                    \IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]) : null,
+                    \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                 'user_location' => IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
@@ -213,9 +214,9 @@ class Revisionable extends Eloquent
                 'old_value' => null,
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
-                'user_ip' => $_SERVER["HTTP_X_REAL_IP"],
+                'user_ip' => self::getRealUserIp(),
                 'user_location' => class_exists('IpAnalystHelper') ?
-                    \IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]) : null,
+                    \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -232,7 +233,7 @@ class Revisionable extends Eloquent
     {
         try {
             if (class_exists($class = '\Cartalyst\Sentry\Facades\Laravel\Sentry')
-                    || class_exists($class = '\Cartalyst\Sentinel\Laravel\Facades\Sentinel')) {
+                || class_exists($class = '\Cartalyst\Sentinel\Laravel\Facades\Sentinel')) {
                 return ($class::check()) ? $class::getUser()->id : null;
             } elseif (\Auth::check()) {
                 return \Auth::user()->getAuthIdentifier();
@@ -394,6 +395,15 @@ class Revisionable extends Eloquent
             $donts[] = $field;
             $this->dontKeepRevisionOf = $donts;
             unset($donts);
+        }
+    }
+
+    private function getRealUserIp(){
+        switch(true){
+            case (!empty($_SERVER['HTTP_X_REAL_IP'])) : return $_SERVER['HTTP_X_REAL_IP'];
+            case (!empty($_SERVER['HTTP_CLIENT_IP'])) : return $_SERVER['HTTP_CLIENT_IP'];
+            case (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) : return $_SERVER['HTTP_X_FORWARDED_FOR'];
+            default : return $_SERVER['REMOTE_ADDR'];
         }
     }
 }
