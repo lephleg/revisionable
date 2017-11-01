@@ -148,7 +148,7 @@ class Revisionable extends Eloquent
                     'new_value'             => $this->updatedData[$key],
                     'user_id'               => $this->getSystemUserId(),
                     'user_ip'               => self::getRealUserIp(),
-                    'user_location'         => class_exists('IpAnalystHelper') ?
+                    'user_location_json'    => class_exists('IpAnalystHelper') ?
                         \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                     'created_at'            => new \DateTime(),
                     'updated_at'            => new \DateTime(),
@@ -186,9 +186,8 @@ class Revisionable extends Eloquent
                 'new_value' => $this->{self::CREATED_AT},
                 'user_id' => $this->getSystemUserId(),
                 'user_ip' => self::getRealUserIp(),
-                'user_location' => class_exists('IpAnalystHelper') ?
+                'user_location_json' => class_exists('IpAnalystHelper') ?
                     \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
-                'user_location' => IpAnalystHelper::getIpLocation($_SERVER["HTTP_X_REAL_IP"]),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -215,7 +214,7 @@ class Revisionable extends Eloquent
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
                 'user_ip' => self::getRealUserIp(),
-                'user_location' => class_exists('IpAnalystHelper') ?
+                'user_location_json' => class_exists('IpAnalystHelper') ?
                     \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
