@@ -45,6 +45,9 @@ trait RevisionableTrait
      */
     protected $dirtyData = array();
 
+    protected $user_ip;
+    protected $user_location_json;
+
     /**
      * Ensure that the bootRevisionableTrait is called only
      * if the current installation is a laravel 4 installation
@@ -83,6 +86,7 @@ trait RevisionableTrait
             $model->preSave();
             $model->postDelete();
         });
+
     }
 
     /**
@@ -115,6 +119,10 @@ trait RevisionableTrait
     {
         if (!isset($this->revisionEnabled) || $this->revisionEnabled) {
             // if there's no revisionEnabled. Or if there is, if it's true
+
+            $this->user_ip = self::getRealUserIp();
+            $this->user_location_json =class_exists('IpAnalystHelper') ?
+                \IpAnalystHelper::getIpLocation($this->user_ip) : null;
 
             $this->originalData = $this->original;
             $this->updatedData = $this->attributes;
@@ -182,9 +190,8 @@ trait RevisionableTrait
                     'old_value' => array_get($this->originalData, $key),
                     'new_value' => $this->updatedData[$key],
                     'user_id' => $this->getSystemUserId(),
-                    'user_ip' => self::getRealUserIp(),
-                    'user_location_json' => class_exists('IpAnalystHelper') ?
-                        \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
+                    'user_ip' => $this->user_ip,
+                    'user_location_json' => $this->user_location_json,
                     'created_at' => new \DateTime(),
                     'updated_at' => new \DateTime(),
                 );
@@ -220,6 +227,10 @@ trait RevisionableTrait
 
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled))
         {
+            $ip = self::getRealUserIp();
+            $locationJson = class_exists('IpAnalystHelper') ?
+                \IpAnalystHelper::getIpLocation($ip) : null;
+
             $revisions[] = array(
                 'revisionable_type' => $this->getMorphClass(),
                 'revisionable_id' => $this->getKey(),
@@ -227,9 +238,8 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{self::CREATED_AT},
                 'user_id' => $this->getSystemUserId(),
-                'user_ip' => self::getRealUserIp(),
-                'user_location_json' => class_exists('IpAnalystHelper') ?
-                    \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
+                'user_ip' => $this->user_ip,
+                'user_location_json' => $this->user_location_json,
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -250,6 +260,11 @@ trait RevisionableTrait
             && $this->isSoftDelete()
             && $this->isRevisionable($this->getDeletedAtColumn())
         ) {
+
+            $ip = self::getRealUserIp();
+            $locationJson = class_exists('IpAnalystHelper') ?
+                \IpAnalystHelper::getIpLocation($ip) : null;
+
             $revisions[] = array(
                 'revisionable_type' => $this->getMorphClass(),
                 'revisionable_id' => $this->getKey(),
@@ -257,9 +272,8 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
-                'user_ip' => self::getRealUserIp(),
-                'user_location_json' => class_exists('IpAnalystHelper') ?
-                    \IpAnalystHelper::getIpLocation(self::getRealUserIp()) : null,
+                'user_ip' => $this->user_ip,
+                'user_location_json' => $this->user_location_json,
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
