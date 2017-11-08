@@ -47,8 +47,8 @@ class Revisionable extends Eloquent
      */
     protected $dirtyData = array();
 
-    protected $user_ip;
-    protected $user_location_json;
+    protected $user_ip = null;
+    protected $user_location_json = null;
 
     /**
      * Create the event listeners for the saving and saved events
@@ -146,9 +146,11 @@ class Revisionable extends Eloquent
 
             $revisions = array();
 
-            $ip = self::getRealUserIp();
-            $locationJson = class_exists('IpAnalystHelper') ?
-                \IpAnalystHelper::getIpLocation($ip) : null;
+            $this->user_ip = self::getRealUserIp();
+            if (!is_null($this->user_ip)) {
+                $this->user_location_json =class_exists('IpAnalystHelper') ?
+                    \IpAnalystHelper::getIpLocation($this->user_ip) : null;
+            }
 
             foreach ($changes_to_record as $key => $change) {
                 $revisions[] = array(
@@ -188,9 +190,11 @@ class Revisionable extends Eloquent
 
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled))
         {
-            $ip = self::getRealUserIp();
-            $locationJson = class_exists('IpAnalystHelper') ?
-                \IpAnalystHelper::getIpLocation($ip) : null;
+            $this->user_ip = self::getRealUserIp();
+            if (!is_null($this->user_ip)) {
+                $this->user_location_json =class_exists('IpAnalystHelper') ?
+                    \IpAnalystHelper::getIpLocation($this->user_ip) : null;
+            }
 
             $revisions[] = array(
                 'revisionable_type' => $this->getMorphClass(),
@@ -220,9 +224,11 @@ class Revisionable extends Eloquent
             && $this->isSoftDelete()
             && $this->isRevisionable($this->getDeletedAtColumn())) {
 
-            $ip = self::getRealUserIp();
-            $locationJson = class_exists('IpAnalystHelper') ?
-                \IpAnalystHelper::getIpLocation($ip) : null;
+            $this->user_ip = self::getRealUserIp();
+            if (!is_null($this->user_ip)) {
+                $this->user_location_json =class_exists('IpAnalystHelper') ?
+                    \IpAnalystHelper::getIpLocation($this->user_ip) : null;
+            }
 
             $revisions[] = array(
                 'revisionable_type' => $this->getMorphClass(),

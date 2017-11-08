@@ -45,8 +45,8 @@ trait RevisionableTrait
      */
     protected $dirtyData = array();
 
-    protected $user_ip;
-    protected $user_location_json;
+    protected $user_ip = null;
+    protected $user_location_json = null;
 
     /**
      * Ensure that the bootRevisionableTrait is called only
@@ -121,8 +121,10 @@ trait RevisionableTrait
             // if there's no revisionEnabled. Or if there is, if it's true
 
             $this->user_ip = self::getRealUserIp();
-            $this->user_location_json =class_exists('IpAnalystHelper') ?
-                \IpAnalystHelper::getIpLocation($this->user_ip) : null;
+            if (!is_null($this->user_ip)) {
+                $this->user_location_json =class_exists('IpAnalystHelper') ?
+                    \IpAnalystHelper::getIpLocation($this->user_ip) : null;
+            }
 
             $this->originalData = $this->original;
             $this->updatedData = $this->attributes;
@@ -464,7 +466,8 @@ trait RevisionableTrait
             case (!empty($_SERVER['HTTP_X_REAL_IP'])) : return $_SERVER['HTTP_X_REAL_IP'];
             case (!empty($_SERVER['HTTP_CLIENT_IP'])) : return $_SERVER['HTTP_CLIENT_IP'];
             case (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) : return $_SERVER['HTTP_X_FORWARDED_FOR'];
-            default : return $_SERVER['REMOTE_ADDR'];
+            default :
+                return !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
         }
     }
 
